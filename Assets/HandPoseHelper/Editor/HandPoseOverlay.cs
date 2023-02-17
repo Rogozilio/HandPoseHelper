@@ -30,6 +30,7 @@ public class HandPoseOverlay : IMGUIOverlay
 
     private Scripts.HandPoseHelper _handPoseHelper;
     private SaveDataTemplate _template;
+    private AnimationClipTool _clipTool;
 
     private bool _isSelectedHand => _selectedHandType is HandType.Left or HandType.Right;
     private bool _isSelectedHands => _selectedHandType != HandType.None;
@@ -90,6 +91,8 @@ public class HandPoseOverlay : IMGUIOverlay
 
         _iconBone = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/HandPoseHelper/Editor/Sprites/bone.png");
         _iconJoint = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/HandPoseHelper/Editor/Sprites/joint.png");
+
+        _clipTool = new AnimationClipTool();
     }
 
     public override void OnWillBeDestroyed()
@@ -108,13 +111,14 @@ public class HandPoseOverlay : IMGUIOverlay
     public override void OnGUI()
     {
         _handPoseHelper = GameObject.FindObjectOfType<Scripts.HandPoseHelper>();
-
         if (!_handPoseHelper) return;
-        DrawHorizontalGUILine(2);
+        DrawHorizontalLine("Pose setting", 0f);
         HandSettings();
-        DrawHorizontalGUILine(2);
+        DrawHorizontalLine("Save pose setting");
         SaveData();
-        DrawHorizontalGUILine(2);
+        DrawHorizontalLine("Create animation clip");
+        SaveDataInAnimationClip();
+        DrawHorizontalLine("Color setting", 10f, 0f);
         EditorGUI.BeginChangeCheck();
         ChoiceColorFingers();
         if (EditorGUI.EndChangeCheck())
@@ -240,6 +244,17 @@ public class HandPoseOverlay : IMGUIOverlay
         EditorGUILayout.EndHorizontal();
     }
 
+    private void SaveDataInAnimationClip()
+    {
+        GUI.enabled = _isNameFileExist && !_isUseDataCollection || _isNamePoseExist;
+        EditorGUILayout.BeginHorizontal();
+        ShowButtonCreateClipLeftHand();
+        ShowButtonCreateClipBothHand();
+        ShowButtonCreateClipRightHand();
+        EditorGUILayout.EndHorizontal();
+        GUI.enabled = true;
+    }
+
     private List<string> GetFilenameByType(Type type)
     {
         var guids = AssetDatabase.FindAssets("t:" + type, new[] { _handPoseHelper.saveDataSetting.path });
@@ -280,18 +295,24 @@ public class HandPoseOverlay : IMGUIOverlay
         return isNameFile ? _nameSaveData : _namePose;
     }
 
-    private void DrawHorizontalGUILine(int height = 1)
+    private void DrawHorizontalLine(string text = "", float topSpace = 10f, float bottomSpace = 2f)
     {
-        GUILayout.Space(4);
+        GUILayout.Space(topSpace);
 
-        Rect rect = GUILayoutUtility.GetRect(10, height, GUILayout.ExpandWidth(true));
-        rect.height = height;
-        rect.xMin = 0;
-        rect.xMax = EditorGUIUtility.currentViewWidth;
+        if (text != string.Empty)
+        {
+            var widthText = EditorStyles.label.CalcSize(new GUIContent(text)).x;
+            var widthLine = (size.x - widthText) / 2;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider, GUILayout.Width(widthLine - 10));
+            EditorGUILayout.LabelField(text, GUILayout.Width(widthText));
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider, GUILayout.Width(widthLine - 10));
+            EditorGUILayout.EndHorizontal();
+        }
+        else
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        Color lineColor = new Color(0.10196f, 0.10196f, 0.10196f, 1);
-        EditorGUI.DrawRect(rect, lineColor);
-        GUILayout.Space(4);
+        GUILayout.Space(bottomSpace);
     }
 
     private void CreateSO(Scripts.HandPoseHelper handPoseHelper)
@@ -376,9 +397,39 @@ public class HandPoseOverlay : IMGUIOverlay
         }
     }
 
+    private void ShowButtonCreateClipLeftHand()
+    {
+        if (GUILayout.Button("Left", GUILayout.Width(_widthButton)))
+        {
+            _clipTool.CreateClip(_namePose + "_L", _handPoseHelper.leftHandPrefab, 
+                _handPoseHelper.leftHandInfo.values);
+        }
+    }
+
+    private void ShowButtonCreateClipBothHand()
+    {
+        if (GUILayout.Button("Both", GUILayout.Width(_widthButton)))
+        {
+            _clipTool.CreateClip(_namePose + "_L", _handPoseHelper.leftHandPrefab, 
+                _handPoseHelper.leftHandInfo.values);
+            _clipTool.CreateClip(_namePose + "_R", _handPoseHelper.rightHandPrefab,
+                _handPoseHelper.rightHandInfo.values);
+        }
+    }
+
+    private void ShowButtonCreateClipRightHand()
+    {
+        if (GUILayout.Button("Right", GUILayout.Width(_widthButton)))
+        {
+            _clipTool.CreateClip(_namePose + "_R", _handPoseHelper.rightHandPrefab,
+                _handPoseHelper.rightHandInfo.values);
+        }
+    }
+
     private void ShowButtonAdd()
     {
-        GUI.enabled = _isSelectedSaveFile && _isUseDataCollection && _namePose != string.Empty;
+        GUI.enabled = _isNameFileExist && _isUseDataCollection && !_isNamePoseExist && _namePose?.Trim() != string.Empty;
+        Debug.LogError("Можно добавить имя с пробелами даже если оно уже есть ('default' == 'default    ') = true");
         if (GUILayout.Button("Add", GUILayout.Width(_widthButton)))
         {
             var template = AssetDatabase.LoadAssetAtPath<SaveDataTemplate>(_pathAsset);

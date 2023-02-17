@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isSelectParentHand: 1
   defaultSaveData: {fileID: 11400000, guid: 672ad106e75da654883efe5d4faa05d5, type: 2}
-  isUseFingertip: 0
+  isUseFingertip: 1
   speedRotate: {x: 0, y: 1, z: 0}
   maxRotate: 60
   leftHandPrefab: {fileID: 114642, guid: df4b88499f4990141938c50917087abd, type: 3}
@@ -174,27 +174,27 @@ MonoBehaviour:
     - {fileID: 0}
     toggles: 0000000001010101010100010101010101010101
   colorFingers:
-    isForEachFinger: 0
+    isForEachFinger: 1
     bones:
     - serializedVersion: 2
-      rgba: 4278255360
+      rgba: 4294901778
     - serializedVersion: 2
-      rgba: 4278255360
+      rgba: 4294967295
     - serializedVersion: 2
-      rgba: 4278255360
+      rgba: 4294835968
     - serializedVersion: 2
-      rgba: 4278255360
+      rgba: 4278190080
     - serializedVersion: 2
       rgba: 4278255360
     joints:
     - serializedVersion: 2
-      rgba: 4278512639
+      rgba: 4280221951
     - serializedVersion: 2
-      rgba: 4278512639
+      rgba: 4293592319
     - serializedVersion: 2
-      rgba: 4278512639
+      rgba: 4278485759
     - serializedVersion: 2
-      rgba: 4278512639
+      rgba: 4294902855
     - serializedVersion: 2
       rgba: 4278512639
   popupIndexTemplate: 1
