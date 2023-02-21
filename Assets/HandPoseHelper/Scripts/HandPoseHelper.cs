@@ -9,11 +9,17 @@ using Object = UnityEngine.Object;
 namespace Scripts
 {
     [Serializable]
+    public struct Joint
+    {
+        public string name;
+        public Quaternion rotate;
+    }
+    [Serializable]
     public struct HandPose
     {
         public Vector3 attachPosition;
         public Quaternion attachRotation;
-        public List<Quaternion> fingerRotations;
+        public List<Joint> joints;
     }
 
     [Serializable]
@@ -78,8 +84,7 @@ namespace Scripts
         [HideInInspector] [SerializeField] public bool isUseFingertip;
         [HideInInspector] [SerializeField] public Vector3 speedRotate;
         [HideInInspector] [SerializeField] public float maxRotate;
-        [Space]
-        [HideInInspector] public GameObject leftHandPrefab;
+        [Space] [HideInInspector] public GameObject leftHandPrefab;
         [HideInInspector] public GameObject rightHandPrefab;
         [HideInInspector] [SerializeField] public List<Transform> leftHandJoints;
         [HideInInspector] [SerializeField] public List<Transform> rightHandJoints;
@@ -140,7 +145,7 @@ namespace Scripts
             }
         }
 
-        public bool isDefaultPoseExist 
+        public bool isDefaultPoseExist
             => defaultSaveData &&
                (!defaultSaveData.GetIsUseDataCollection ||
                 (defaultSaveData.GetIsUseDataCollection && defaultSaveData.GetAllNames.Count > 0));
@@ -332,16 +337,24 @@ namespace Scripts
             handPoseData.leftHand.attachPosition = _offsetLeftHand;
             handPoseData.rightHand.attachPosition = _offsetRightHand;
 
-            handPoseData.leftHand.fingerRotations = new List<Quaternion>();
+            handPoseData.leftHand.joints = new List<Joint>();
             foreach (var transform in leftHandInfo.values)
             {
-                handPoseData.leftHand.fingerRotations.Add(transform.rotation);
+                handPoseData.leftHand.joints.Add(new Joint()
+                {
+                    name =  transform.name,
+                    rotate = transform.localRotation
+                });
             }
 
-            handPoseData.rightHand.fingerRotations = new List<Quaternion>();
+            handPoseData.rightHand.joints = new List<Joint>();
             foreach (var transform in rightHandInfo.values)
             {
-                handPoseData.rightHand.fingerRotations.Add(transform.rotation);
+                handPoseData.rightHand.joints.Add(new Joint()
+                {
+                    name =  transform.name,
+                    rotate = transform.localRotation
+                });
             }
 
             return handPoseData;
@@ -352,18 +365,20 @@ namespace Scripts
             if (handType is HandType.All or HandType.Left)
             {
                 _offsetLeftHand = handPoseData.leftHand.attachPosition;
-                for (var i = 0; i < handPoseData.leftHand.fingerRotations.Count; i++)
+                for (var i = 0; i < handPoseData.leftHand.joints.Count; i++)
                 {
-                    leftHandInfo.values[i].rotation = handPoseData.leftHand.fingerRotations[i];
+                    leftHandInfo.values[i].localRotation =
+                        handPoseData.leftHand.joints[i].rotate;
                 }
             }
 
             if (handType is HandType.All or HandType.Right)
             {
                 _offsetRightHand = handPoseData.rightHand.attachPosition;
-                for (var i = 0; i < handPoseData.rightHand.fingerRotations.Count; i++)
+                for (var i = 0; i < handPoseData.rightHand.joints.Count; i++)
                 {
-                    rightHandInfo.values[i].rotation = handPoseData.rightHand.fingerRotations[i];
+                    rightHandInfo.values[i].localRotation =
+                        handPoseData.rightHand.joints[i].rotate;
                 }
             }
 
@@ -373,7 +388,7 @@ namespace Scripts
         public void ClearOrDefaultPose(HandType handType)
         {
             if (handType == HandType.None) return;
-            
+
             UndoRecordHands("Clear or default hands");
 
             if (isDefaultPoseExist)
@@ -383,12 +398,13 @@ namespace Scripts
                     var name = defaultSaveData.GetAllNames?[popupIndexDefaultSaveData];
                     var handPoseData = defaultSaveData.Load(name);
                     _leftHand.transform.localPosition = handPoseData.leftHand.attachPosition;
-                    _rightHand.transform.localPosition = handPoseData.rightHand.attachPosition; 
+                    _rightHand.transform.localPosition = handPoseData.rightHand.attachPosition;
                     SetHandPoseData(handPoseData, handType);
                     return;
                 }
+
                 _leftHand.transform.localPosition = defaultSaveData.Load().leftHand.attachPosition;
-                _rightHand.transform.localPosition = defaultSaveData.Load().rightHand.attachPosition; 
+                _rightHand.transform.localPosition = defaultSaveData.Load().rightHand.attachPosition;
                 SetHandPoseData(defaultSaveData.Load(), handType);
             }
             else
@@ -613,13 +629,15 @@ namespace Scripts
             GUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_defaultSaveData);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 _popupIndexDefaultSaveData.intValue = 0;
             }
+
             if (((SaveDataTemplate)_defaultSaveData.objectReferenceValue)?.GetAllNames?.Count > 0)
                 _popupIndexDefaultSaveData.intValue = EditorGUILayout.Popup(_popupIndexDefaultSaveData.intValue,
-                    ((SaveDataTemplate)_defaultSaveData.objectReferenceValue).GetAllNames.ToArray(), GUILayout.Width(100f));
+                    ((SaveDataTemplate)_defaultSaveData.objectReferenceValue).GetAllNames.ToArray(),
+                    GUILayout.Width(100f));
             GUILayout.EndHorizontal();
             GUILayout.Space(6);
             GUILayout.BeginHorizontal();

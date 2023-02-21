@@ -5,16 +5,16 @@ using UnityEngine;
 
 public class DefaultTemplate : SaveDataTemplate
 {
-    [SerializeField] private HandPoseData _hands;
+    public HandPoseData hands;
 
     public override void Save(HandPoseData hands, string name)
     {
         hands.name = name;
-        _hands = hands;
+        this.hands = hands;
     }
 
     public override HandPoseData Load()
     {
-        return _hands;
+        return hands;
     }
 }

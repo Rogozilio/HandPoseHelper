@@ -18,7 +18,6 @@ public class AnimationClipTool
     {
         _indexRotate = 1;
         _clip = new AnimationClip {name = name, legacy = true};
-        _clip.legacy = true;
         NextChildLevel(target, listTransforms);
         
         CreateAssetAnimClip(_path + "/" + _clip.name+".anim");

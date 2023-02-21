@@ -79,11 +79,12 @@ public class HandPoseOverlay : IMGUIOverlay
             if (!_isUseDataCollection) return false;
 
             var template = AssetDatabase.LoadAssetAtPath<SaveDataTemplate>(_pathAsset);
-            return (template != null) && template.Load(_namePose).name != null;
+            var name = template?.Load(_namePose?.Trim()).name;
+            return name != null;
         }
     }
 
-    private string _pathAsset => _handPoseHelper.saveDataSetting.path + "/" + _nameSaveData + ".asset";
+    private string _pathAsset => _handPoseHelper.saveDataSetting.path + "/" + _nameSaveData?.Trim() + ".asset";
 
     public override void OnCreated()
     {
@@ -116,8 +117,8 @@ public class HandPoseOverlay : IMGUIOverlay
         HandSettings();
         DrawHorizontalLine("Save pose setting");
         SaveData();
-        DrawHorizontalLine("Create animation clip");
-        SaveDataInAnimationClip();
+        // DrawHorizontalLine("Create animation clip");
+        // SaveDataInAnimationClip();
         DrawHorizontalLine("Color setting", 10f, 0f);
         EditorGUI.BeginChangeCheck();
         ChoiceColorFingers();
@@ -344,8 +345,8 @@ public class HandPoseOverlay : IMGUIOverlay
             var template = AssetDatabase.LoadAssetAtPath<SaveDataTemplate>(_pathAsset);
             var handPose = _isNamePoseExist ? template.Load(_namePose) : template.Load();
 
-            if (handPose.leftHand.fingerRotations.Count != _handPoseHelper.leftHandInfo.values.Count ||
-                handPose.rightHand.fingerRotations.Count != _handPoseHelper.rightHandInfo.values.Count)
+            if (handPose.leftHand.joints.Count != _handPoseHelper.leftHandInfo.values.Count ||
+                handPose.rightHand.joints.Count != _handPoseHelper.rightHandInfo.values.Count)
             {
                 Debug.LogError("Load failed. Save data do not match choice hands.");
                 return;
@@ -374,7 +375,8 @@ public class HandPoseOverlay : IMGUIOverlay
                 return;
             }
 
-            _template.Save(_handPoseHelper.GetHandPoseData(), _namePose != string.Empty ? _namePose : _nameSaveData);
+            _template.Save(_handPoseHelper.GetHandPoseData(),
+                _namePose != string.Empty ? _namePose?.Trim() : _nameSaveData?.Trim());
             AssetDatabase.CreateAsset(_template, _pathAsset);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -389,9 +391,11 @@ public class HandPoseOverlay : IMGUIOverlay
         {
             var template = AssetDatabase.LoadAssetAtPath<SaveDataTemplate>(_pathAsset);
             if (_isUseDataCollection)
-                template.Save(_handPoseHelper.GetHandPoseData(), _namePose != string.Empty ? _namePose : _nameSaveData);
+                template.Save(_handPoseHelper.GetHandPoseData(),
+                    _namePose != string.Empty ? _namePose?.Trim() : _nameSaveData?.Trim());
             else
-                template.Save(_handPoseHelper.GetHandPoseData(), _isNamePoseExist ? _namePose : _nameSaveData);
+                template.Save(_handPoseHelper.GetHandPoseData(),
+                    _isNamePoseExist ? _namePose?.Trim() : _nameSaveData?.Trim());
 
             EditorUtility.SetDirty(template);
         }
@@ -401,7 +405,7 @@ public class HandPoseOverlay : IMGUIOverlay
     {
         if (GUILayout.Button("Left", GUILayout.Width(_widthButton)))
         {
-            _clipTool.CreateClip(_namePose + "_L", _handPoseHelper.leftHandPrefab, 
+            _clipTool.CreateClip(_namePose + "_L", _handPoseHelper.leftHandPrefab,
                 _handPoseHelper.leftHandInfo.values);
         }
     }
@@ -410,9 +414,10 @@ public class HandPoseOverlay : IMGUIOverlay
     {
         if (GUILayout.Button("Both", GUILayout.Width(_widthButton)))
         {
-            _clipTool.CreateClip(_namePose + "_L", _handPoseHelper.leftHandPrefab, 
+            var name = _isUseDataCollection ? _namePose : _nameSaveData;
+            _clipTool.CreateClip(name + "_L", _handPoseHelper.leftHandPrefab,
                 _handPoseHelper.leftHandInfo.values);
-            _clipTool.CreateClip(_namePose + "_R", _handPoseHelper.rightHandPrefab,
+            _clipTool.CreateClip(name + "_R", _handPoseHelper.rightHandPrefab,
                 _handPoseHelper.rightHandInfo.values);
         }
     }
@@ -428,8 +433,8 @@ public class HandPoseOverlay : IMGUIOverlay
 
     private void ShowButtonAdd()
     {
-        GUI.enabled = _isNameFileExist && _isUseDataCollection && !_isNamePoseExist && _namePose?.Trim() != string.Empty;
-        Debug.LogError("Можно добавить имя с пробелами даже если оно уже есть ('default' == 'default    ') = true");
+        GUI.enabled = _isNameFileExist && _isUseDataCollection && !_isNamePoseExist &&
+                      _namePose?.Trim() != string.Empty;
         if (GUILayout.Button("Add", GUILayout.Width(_widthButton)))
         {
             var template = AssetDatabase.LoadAssetAtPath<SaveDataTemplate>(_pathAsset);
