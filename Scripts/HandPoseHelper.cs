@@ -538,7 +538,7 @@ namespace Scripts
 
     #if UNITY_EDITOR
     [CustomEditor(typeof(HandPoseHelper))]
-    public class HandPoseHelperEditor : UnityEditor.Editor
+    public class HandPoseHelperEditor : Editor
     {
         private HandPoseHelper _handPoseHelper;
 

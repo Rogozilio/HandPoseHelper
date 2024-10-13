@@ -60,7 +60,7 @@ namespace Scripts
     }
     #if UNITY_EDITOR
     [CustomEditor(typeof(DrawGizmosHand))]
-    public class DrawGizmosEditor : UnityEditor.Editor
+    public class DrawGizmosEditor : Editor
     {
         private DrawGizmosHand _hand;
 
