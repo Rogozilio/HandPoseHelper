@@ -58,9 +58,9 @@ namespace Scripts
             }
         }
     }
-
+    #if UNITY_EDITOR
     [CustomEditor(typeof(DrawGizmosHand))]
-    public class DrawGizmosEditor : Editor
+    public class DrawGizmosEditor : UnityEditor.Editor
     {
         private DrawGizmosHand _hand;
 
@@ -229,3 +229,4 @@ namespace Scripts
         }
     }
 }
+#endif
