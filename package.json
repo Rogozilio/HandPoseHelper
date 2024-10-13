@@ -1,0 +1,7 @@
+{
+  "name": "com.rogozilio.handposehelper",
+  "version": "0.8.0",
+  "displayName": "Hand Pose Helper",
+  "description": "Инструмент позваляет создавить позы рук для VR",
+  "unity": "2019.1"
+}
